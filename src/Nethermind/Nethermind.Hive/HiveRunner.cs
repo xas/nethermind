@@ -69,7 +69,16 @@ namespace Nethermind.Hive
             if (_logger.IsInfo) _logger.Info("HIVE initialization started");
             _blockTree.BlockAddedToMain += BlockTreeOnBlockAddedToMain;
             IHiveConfig hiveConfig = _configurationProvider.GetConfig<IHiveConfig>();
+            
+            _logger.Info($"HIVE RUNNER initial Eip1559TransitionBlock: {HeaderDecoder.Eip1559TransitionBlock}");
 
+            if (long.TryParse(Environment.GetEnvironmentVariable("HIVE_FORK_LONDON"), out long londonTransitionBlock))
+            {
+                HeaderDecoder.Eip1559TransitionBlock = londonTransitionBlock;
+            }
+            
+            _logger.Info($"HIVE RUNNER Eip1559TransitionBlock after change: {HeaderDecoder.Eip1559TransitionBlock}");
+            
             ListEnvironmentVariables();
             await InitializeBlocks(hiveConfig.BlocksDir, cancellationToken);
             await InitializeChain(hiveConfig.ChainFile);

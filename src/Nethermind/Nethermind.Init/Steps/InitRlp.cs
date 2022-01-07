@@ -42,6 +42,7 @@ namespace Nethermind.Init.Steps
             
            Rlp.RegisterDecoders(Assembly.GetAssembly(typeof(NetworkNodeDecoder)));
            HeaderDecoder.Eip1559TransitionBlock = _api.SpecProvider.GenesisSpec.Eip1559TransitionBlock;
+           _api.LogManager.GetClassLogger().Info($"INIT RLP Eip1559TransitionBlock: {HeaderDecoder.Eip1559TransitionBlock}");
            
            return Task.CompletedTask;
         }
