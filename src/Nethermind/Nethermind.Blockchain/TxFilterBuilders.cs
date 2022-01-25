@@ -15,15 +15,15 @@
 //  along with the Nethermind. If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using Nethermind.Consensus;
 using Nethermind.Consensus.Transactions;
 using Nethermind.Core.Specs;
+using Nethermind.Int256;
 
 namespace Nethermind.Blockchain
 {
     public static class TxFilterBuilders
     {
-        public static IMinGasPriceTxFilter CreateStandardMinGasPriceTxFilter(IMiningConfig miningConfig, ISpecProvider specProvider)
-            => new MinGasPriceTxFilter(miningConfig.MinGasPrice, specProvider);
+        public static IMinGasPriceTxFilter CreateStandardMinGasPriceTxFilter(UInt256 minGasPrice, ISpecProvider specProvider)
+            => new MinGasPriceTxFilter(minGasPrice, specProvider);
     }
 }

@@ -24,19 +24,20 @@ using Nethermind.Core;
 using Nethermind.Core.Specs;
 using Nethermind.Evm.TransactionProcessing;
 using Nethermind.Init.Steps;
+using Nethermind.Int256;
 
 namespace Nethermind.Consensus.AuRa.InitializationSteps
 {
     public static class TxAuRaFilterBuilders
     {
         private static ITxFilter CreateBaseAuRaTxFilter(
-            IMiningConfig miningConfig,
+            UInt256 minGasPrice,
             AuRaNethermindApi api,
             IReadOnlyTxProcessorSource readOnlyTxProcessorSource,
             IDictionaryContractDataStore<TxPriorityContract.Destination>? minGasPricesContractDataStore,
             ISpecProvider specProvider)
         {
-            IMinGasPriceTxFilter minGasPriceTxFilter = Blockchain.TxFilterBuilders.CreateStandardMinGasPriceTxFilter(miningConfig, specProvider);
+            IMinGasPriceTxFilter minGasPriceTxFilter = Blockchain.TxFilterBuilders.CreateStandardMinGasPriceTxFilter(minGasPrice, specProvider);
             ITxFilter gasPriceTxFilter = minGasPriceTxFilter;
             if (minGasPricesContractDataStore != null)
             {
@@ -99,13 +100,13 @@ namespace Nethermind.Consensus.AuRa.InitializationSteps
         }
         
         public static ITxFilter CreateAuRaTxFilterForProducer(
-            IMiningConfig miningConfig,
+            UInt256 minGasPrice,
             AuRaNethermindApi api,
             IReadOnlyTxProcessorSource readOnlyTxProcessorSource,
             IDictionaryContractDataStore<TxPriorityContract.Destination>? minGasPricesContractDataStore,
             ISpecProvider specProvider)
         {
-            ITxFilter baseAuRaTxFilter = CreateBaseAuRaTxFilter(miningConfig, api, readOnlyTxProcessorSource, minGasPricesContractDataStore, specProvider);
+            ITxFilter baseAuRaTxFilter = CreateBaseAuRaTxFilter(minGasPrice, api, readOnlyTxProcessorSource, minGasPricesContractDataStore, specProvider);
             ITxFilter? txPermissionFilter = CreateTxPermissionFilter(api, readOnlyTxProcessorSource);
             return txPermissionFilter != null
                 ? new CompositeTxFilter(baseAuRaTxFilter, txPermissionFilter) 

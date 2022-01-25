@@ -290,7 +290,7 @@ namespace Nethermind.Consensus.AuRa.InitializationSteps
 
         private ITxFilter CreateAuraTxFilterForProducer(IReadOnlyTxProcessorSource readOnlyTxProcessorSource, ISpecProvider specProvider) =>
             TxAuRaFilterBuilders.CreateAuRaTxFilterForProducer(
-                NethermindApi.Config<IMiningConfig>(),
+                NethermindApi.Config<IMiningConfig>().MinGasPrice,
                 _api,
                 readOnlyTxProcessorSource,
                 _minGasPricesContractDataStore,

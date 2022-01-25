@@ -34,6 +34,7 @@ using Nethermind.Consensus.Transactions;
 using Nethermind.Core;
 using Nethermind.Evm.TransactionProcessing;
 using Nethermind.Init.Steps;
+using Nethermind.Int256;
 using Nethermind.Logging;
 using Nethermind.TxPool;
 using Nethermind.TxPool.Comparison;
@@ -262,9 +263,12 @@ namespace Nethermind.Consensus.AuRa.InitializationSteps
             ReportTxPriorityRules(txPriorityContract, localDataSource);
 
             var minGasPricesContractDataStore = TxAuRaFilterBuilders.CreateMinGasPricesDataStore(_api, txPriorityContract, localDataSource);
-
+            
+            // not rejecting any txs from TxPool because of temporary too low fee. It can be overriden by contract.
+            UInt256 minEffectivePriorityFeeRequiredToBeIncludedInTxPool = UInt256.Zero;
+            
             ITxFilter txPoolFilter = TxAuRaFilterBuilders.CreateAuRaTxFilterForProducer(
-                NethermindApi.Config<IMiningConfig>(),
+                minEffectivePriorityFeeRequiredToBeIncludedInTxPool,
                 _api,
                 txPoolReadOnlyTransactionProcessorSource,
                 minGasPricesContractDataStore,
