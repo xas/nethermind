@@ -260,15 +260,12 @@ namespace Nethermind.Consensus.AuRa.InitializationSteps
             var (txPriorityContract, localDataSource) = TxAuRaFilterBuilders.CreateTxPrioritySources(_auraConfig, _api, txPoolReadOnlyTransactionProcessorSource!);
 
             ReportTxPriorityRules(txPriorityContract, localDataSource);
-
-            var minGasPricesContractDataStore = TxAuRaFilterBuilders.CreateMinGasPricesDataStore(_api, txPriorityContract, localDataSource);
-
-            ITxFilter txPoolFilter = TxAuRaFilterBuilders.CreateAuRaTxFilterForProducer(
-                NethermindApi.Config<IMiningConfig>(),
+            
+            ITxFilter txPoolFilter = TxAuRaFilterBuilders.CreateAuRaTxFilter(
                 _api,
                 txPoolReadOnlyTransactionProcessorSource,
-                minGasPricesContractDataStore,
-                _api.SpecProvider);
+                _api.SpecProvider,
+                NullTxFilter.Instance);
             
             return new TxPool.TxPool(
                 _api.EthereumEcdsa,
