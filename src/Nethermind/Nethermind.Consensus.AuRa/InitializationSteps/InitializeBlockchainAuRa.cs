@@ -264,8 +264,13 @@ namespace Nethermind.Consensus.AuRa.InitializationSteps
 
             var minGasPricesContractDataStore = TxAuRaFilterBuilders.CreateMinGasPricesDataStore(_api, txPriorityContract, localDataSource);
             
-            // not rejecting any txs from TxPool because of temporary too low fee. It can be overriden by contract.
-            UInt256 minEffectivePriorityFeeRequiredToBeIncludedInTxPool = UInt256.Zero;
+            // For producers: minimal effective priority fee equal to MinGasPrice from Mining config. Not adding any txs
+            // with lower fee to TxPool - storing not-ready txs in TxPool of producer is not desired.
+            // For not-producers: not rejecting any txs from TxPool because of temporary too low fee.
+            // In both cases, MinGasPrice can be overriden by contract.
+            UInt256 minEffectivePriorityFeeRequiredToBeIncludedInTxPool = NethermindApi.Config<IMiningConfig>().Enabled
+                ? NethermindApi.Config<IMiningConfig>().MinGasPrice
+                : UInt256.Zero;
             
             ITxFilter txPoolFilter = TxAuRaFilterBuilders.CreateAuRaTxFilterForProducer(
                 minEffectivePriorityFeeRequiredToBeIncludedInTxPool,
