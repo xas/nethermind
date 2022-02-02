@@ -28,6 +28,6 @@ namespace Nethermind.TxPool
         public string Enode => string.Empty;
         void SendNewTransaction(Transaction tx, bool isPersistent = false) => SendNewTransactions(new[]{(tx, isPersistent)});
         void SendNewTransactions(IEnumerable<(Transaction Tx, bool IsPersistent)> txs) => SendNewTransactions(txs.Select(t => t.Tx));
-        void SendNewTransactions(IEnumerable<Transaction> txs) => SendNewTransactions(txs.Select(t => (t, false)));
+        void SendNewTransactions(IEnumerable<Transaction> txs);
     }
 }
