@@ -153,6 +153,7 @@ namespace Nethermind.Hive
                 }
 
                 Block block = DecodeBlock(file);
+                _logger.Info($"HIVE RUNNER Eip1559TransitionBlock just after decoding block: {HeaderDecoder.Eip1559TransitionBlock}");
 
                 if (_logger.IsInfo)
                     _logger.Info(
@@ -198,6 +199,7 @@ namespace Nethermind.Hive
             if (_logger.IsInfo) _logger.Info(fileContent.ToHexString());
             Rlp blockRlp = new Rlp(fileContent);
 
+            _logger.Info($"HIVE RUNNER Eip1559TransitionBlock just before decoding block: {HeaderDecoder.Eip1559TransitionBlock}");
             return Rlp.Decode<Block>(blockRlp);
         }
 
