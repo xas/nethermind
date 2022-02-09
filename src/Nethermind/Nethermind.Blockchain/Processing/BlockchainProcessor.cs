@@ -365,13 +365,17 @@ namespace Nethermind.Blockchain.Processing
         {
             void DeleteInvalidBlocks(Keccak invalidBlockHash)
             {
-                for (int i = 0; i < processingBranch.BlocksToProcess.Count; i++)
+                bool isNotReadOnly = (options & ProcessingOptions.ReadOnlyChain) != ProcessingOptions.ReadOnlyChain;
+                if (isNotReadOnly)
                 {
-                    if (processingBranch.BlocksToProcess[i].Hash == invalidBlockHash)
+                    for (int i = 0; i < processingBranch.BlocksToProcess.Count; i++)
                     {
-                        _blockTree.DeleteInvalidBlock(processingBranch.BlocksToProcess[i]);
-                        if (_logger.IsDebug)
-                            _logger.Debug($"Skipped processing of {processingBranch.BlocksToProcess[^1].ToString(Block.Format.FullHashAndNumber)} because of {processingBranch.BlocksToProcess[i].ToString(Block.Format.FullHashAndNumber)} is invalid");
+                        if (processingBranch.BlocksToProcess[i].Hash == invalidBlockHash)
+                        {
+                            _blockTree.DeleteInvalidBlock(processingBranch.BlocksToProcess[i]);
+                            if (_logger.IsDebug)
+                                _logger.Debug($"Skipped processing of {processingBranch.BlocksToProcess[^1].ToString(Block.Format.FullHashAndNumber)} because of {processingBranch.BlocksToProcess[i].ToString(Block.Format.FullHashAndNumber)} is invalid");
+                        }
                     }
                 }
             }
