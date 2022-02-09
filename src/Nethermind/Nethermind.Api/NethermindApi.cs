@@ -23,6 +23,7 @@ using Nethermind.Blockchain;
 using Nethermind.Blockchain.Comparers;
 using Nethermind.Blockchain.Filters;
 using Nethermind.Blockchain.Find;
+using Nethermind.Blockchain.FullPruning;
 using Nethermind.Blockchain.Processing;
 using Nethermind.Blockchain.Producers;
 using Nethermind.Blockchain.Receipts;
@@ -48,7 +49,6 @@ using Nethermind.KeyStore;
 using Nethermind.Logging;
 using Nethermind.Monitoring;
 using Nethermind.Network;
-using Nethermind.Network.Discovery;
 using Nethermind.Network.P2P;
 using Nethermind.Network.P2P.Analyzers;
 using Nethermind.Network.Rlpx;
@@ -91,8 +91,7 @@ namespace Nethermind.Api
                 LogManager);
 
             IMiningConfig miningConfig = ConfigProvider.GetConfig<IMiningConfig>();
-            ISyncConfig syncConfig = ConfigProvider.GetConfig<ISyncConfig>();
-
+            
             return new BlockchainBridge(
                 readOnlyTxProcessingEnv,
                 TxPool,
@@ -146,6 +145,7 @@ namespace Nethermind.Api
         public IMonitoringService MonitoringService { get; set; } = NullMonitoringService.Instance;
         public INodeStatsManager? NodeStatsManager { get; set; }
         public IPeerManager? PeerManager { get; set; }
+        public IPeerPool? PeerPool { get; set; }
         public IProtocolsManager? ProtocolsManager { get; set; }
         public IProtocolValidator? ProtocolValidator { get; set; }
         public IReceiptStorage? ReceiptStorage { get; set; }
@@ -153,7 +153,7 @@ namespace Nethermind.Api
         public IWitnessRepository? WitnessRepository { get; set; }
         public IReceiptFinder? ReceiptFinder { get; set; }
         public IRewardCalculatorSource? RewardCalculatorSource { get; set; } = NoBlockRewards.Instance;
-        public IRlpxPeer? RlpxPeer { get; set; }
+        public IRlpxHost? RlpxPeer { get; set; }
         public IRpcModuleProvider RpcModuleProvider { get; set; } = NullModuleProvider.Instance;
         public ISealer? Sealer { get; set; } = NullSealEngine.Instance;
         public string SealEngineType { get; set; } = Nethermind.Core.SealEngineType.None;
@@ -201,5 +201,6 @@ namespace Nethermind.Api
         public DisposableStack DisposeStack { get; } = new();
         public IReadOnlyList<INethermindPlugin> Plugins { get; } = new List<INethermindPlugin>();
         public IList<IPublisher> Publishers { get; } = new List<IPublisher>(); // this should be called publishers
+        public CompositePruningTrigger PruningTrigger { get; } = new();
     }
 }

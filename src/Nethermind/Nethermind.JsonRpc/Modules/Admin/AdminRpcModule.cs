@@ -15,15 +15,16 @@
 //  along with the Nethermind. If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Nethermind.Blockchain;
+using Nethermind.Blockchain.FullPruning;
 using Nethermind.Config;
 using Nethermind.Core;
 using Nethermind.Core.Crypto;
 using Nethermind.Network;
 using Nethermind.Network.Config;
+using Nethermind.Stats.Model;
 
 namespace Nethermind.JsonRpc.Modules.Admin
 {
@@ -31,28 +32,29 @@ namespace Nethermind.JsonRpc.Modules.Admin
     {
         private readonly IBlockTree _blockTree;
         private readonly INetworkConfig _networkConfig;
-        private readonly IPeerManager _peerManager;
+        private readonly IPeerPool _peerPool;
         private readonly IStaticNodesManager _staticNodesManager;
         private readonly IEnode _enode;
         private readonly string _dataDir;
-        
-        [NotNull]
-        private NodeInfo _nodeInfo;
+        private readonly ManualPruningTrigger _pruningTrigger;
+        private NodeInfo _nodeInfo = null!;
 
         public AdminRpcModule(
             IBlockTree blockTree,
             INetworkConfig networkConfig,
-            IPeerManager peerManager,
+            IPeerPool peerPool,
             IStaticNodesManager staticNodesManager,
             IEnode enode,
-            string dataDir)
+            string dataDir,
+            ManualPruningTrigger pruningTrigger)
         {
             _enode = enode ?? throw new ArgumentNullException(nameof(enode));
             _dataDir = dataDir ?? throw new ArgumentNullException(nameof(dataDir));
             _blockTree = blockTree ?? throw new ArgumentNullException(nameof(blockTree));
-            _peerManager = peerManager ?? throw new ArgumentNullException(nameof(peerManager));
+            _peerPool = peerPool ?? throw new ArgumentNullException(nameof(peerPool));
             _networkConfig = networkConfig ?? throw new ArgumentNullException(nameof(networkConfig));
             _staticNodesManager = staticNodesManager ?? throw new ArgumentNullException(nameof(staticNodesManager));
+            _pruningTrigger = pruningTrigger;
 
             BuildNodeInfo();
         }
@@ -88,7 +90,8 @@ namespace Nethermind.JsonRpc.Modules.Admin
             }
             else
             {
-                _peerManager.AddPeer(new NetworkNode(enode));
+                NetworkNode networkNode = new(enode);
+                _peerPool.GetOrAdd(new Node(networkNode));
                 added = true;
             }
 
@@ -106,7 +109,7 @@ namespace Nethermind.JsonRpc.Modules.Admin
             }
             else
             {
-                removed = _peerManager.RemovePeer(new NetworkNode(enode));
+                removed = _peerPool.TryRemove(new NetworkNode(enode).NodeId, out Peer _);
             }
             
             return removed
@@ -116,7 +119,7 @@ namespace Nethermind.JsonRpc.Modules.Admin
         
         public ResultWrapper<PeerInfo[]> admin_peers(bool includeDetails = false)
             => ResultWrapper<PeerInfo[]>.Success(
-                _peerManager.ActivePeers.Select(p => new PeerInfo(p, includeDetails)).ToArray());
+                _peerPool.ActivePeers.Select(p => new PeerInfo(p.Value, includeDetails)).ToArray());
 
         public ResultWrapper<NodeInfo> admin_nodeInfo()
         {
@@ -132,6 +135,11 @@ namespace Nethermind.JsonRpc.Modules.Admin
         public ResultWrapper<bool> admin_setSolc()
         {
             return ResultWrapper<bool>.Success(true);
+        }
+
+        public ResultWrapper<PruningStatus> admin_prune()
+        {
+            return ResultWrapper<PruningStatus>.Success(_pruningTrigger.Trigger());
         }
     }
 }

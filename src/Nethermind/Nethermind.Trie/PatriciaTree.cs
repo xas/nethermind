@@ -66,6 +66,24 @@ namespace Nethermind.Trie
 
         internal TrieNode? RootRef;
 
+        /// <summary>
+        /// Only used in EthereumTests
+        /// </summary>
+        internal TrieNode? Root
+        {
+            get
+            {
+                RootRef?.ResolveNode(TrieStore);
+                return RootRef;
+            }
+        }
+
+        public Keccak RootHash
+        {
+            get => _rootHash;
+            set => SetRootHash(value, true);
+        }
+
         public PatriciaTree()
             : this(NullTrieStore.Instance, EmptyTreeHash, false, true, NullLogManager.Instance)
         {
@@ -117,24 +135,6 @@ namespace Nethermind.Trie
                 _currentCommit = new ConcurrentQueue<NodeCommitInfo>();
                 _commitExceptions = new ConcurrentQueue<Exception>();
             }
-        }
-
-        /// <summary>
-        /// Only used in EthereumTests
-        /// </summary>
-        internal TrieNode? Root
-        {
-            get
-            {
-                RootRef?.ResolveNode(TrieStore);
-                return RootRef;
-            }
-        }
-
-        public Keccak RootHash
-        {
-            get => _rootHash;
-            set => SetRootHash(value, true);
         }
 
         public void Commit(long blockNumber)
@@ -311,15 +311,22 @@ namespace Nethermind.Trie
         [DebuggerStepThrough]
         public byte[]? Get(Span<byte> rawKey, Keccak? rootHash = null)
         {
-            int nibblesCount = 2 * rawKey.Length;
-            byte[] array = null;
-            Span<byte> nibbles = rawKey.Length <= 64
-                ? stackalloc byte[nibblesCount]
-                : array = ArrayPool<byte>.Shared.Rent(nibblesCount);
-            Nibbles.BytesToNibbleBytes(rawKey, nibbles);
-            var result = Run(nibbles, nibblesCount, Array.Empty<byte>(), false, startRootHash: rootHash);
-            if (array != null) ArrayPool<byte>.Shared.Return(array);
-            return result;
+            try
+            {
+                int nibblesCount = 2 * rawKey.Length;
+                byte[] array = null;
+                Span<byte> nibbles = rawKey.Length <= 64
+                    ? stackalloc byte[nibblesCount]
+                    : array = ArrayPool<byte>.Shared.Rent(nibblesCount);
+                Nibbles.BytesToNibbleBytes(rawKey, nibbles);
+                var result = Run(nibbles, nibblesCount, Array.Empty<byte>(), false, startRootHash: rootHash);
+                if (array != null) ArrayPool<byte>.Shared.Return(array);
+                return result;
+            }
+            catch (TrieException e)
+            {
+                throw new TrieException($"Failed to load key {rawKey.ToHexString()} from root hash {rootHash ?? RootHash}.", e);
+            }
         }
 
         [DebuggerStepThrough]
@@ -964,7 +971,7 @@ namespace Nethermind.Trie
 
             public override string ToString()
             {
-                return $"{(IsDelete ? "DELETE" : IsUpdate ? "UPDATE" : "READ")} {UpdatePath.ToHexString()}{(IsRead ? "" : $" -> {UpdateValue}")}";
+                return $"{(IsDelete ? "DELETE" : IsUpdate ? "UPDATE" : "READ")} {UpdatePath.ToHexString()}{(IsRead ? string.Empty : $" -> {UpdateValue}")}";
             }
         }
 
@@ -985,18 +992,19 @@ namespace Nethermind.Trie
             }
         }
 
-        public void Accept(ITreeVisitor visitor, Keccak rootHash, VisitingOptions visitingOptions = VisitingOptions.ExpectAccounts)
+        public void Accept(ITreeVisitor visitor, Keccak rootHash, VisitingOptions? visitingOptions = null)
         {
             if (visitor is null) throw new ArgumentNullException(nameof(visitor));
             if (rootHash is null) throw new ArgumentNullException(nameof(rootHash));
+            visitingOptions ??= VisitingOptions.Default;
 
-            TrieVisitContext trieVisitContext = new()
+            using TrieVisitContext trieVisitContext = new()
             {
                 // hacky but other solutions are not much better, something nicer would require a bit of thinking
                 // we introduced a notion of an account on the visit context level which should have no knowledge of account really
                 // but we know that we have multiple optimizations and assumptions on trees
-                ExpectAccounts = (visitingOptions & VisitingOptions.ExpectAccounts) != VisitingOptions.None,
-                Parallel = (visitingOptions & VisitingOptions.Parallel) != VisitingOptions.None
+                ExpectAccounts = visitingOptions.ExpectAccounts,
+                MaxDegreeOfParallelism = visitingOptions.MaxDegreeOfParallelism
             };
 
             TrieNode rootRef = null;
