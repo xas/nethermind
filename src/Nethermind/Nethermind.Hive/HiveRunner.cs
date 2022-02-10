@@ -206,7 +206,7 @@ namespace Nethermind.Hive
 
         private async Task WaitForBlockProcessing(SemaphoreSlim semaphore)
         {
-            if (!await semaphore.WaitAsync(-1))
+            if (!await semaphore.WaitAsync(5000))
             {
                 throw new InvalidOperationException();
             }
@@ -223,6 +223,7 @@ namespace Nethermind.Hive
                 }
 
                 AddBlockResult result = await _blockTree.SuggestBlockAsync(block);
+                _logger.Info("we are back in hive runner after awaiting for async suggest block");
                 if (result != AddBlockResult.Added && result != AddBlockResult.AlreadyKnown)
                 {
                     if (_logger.IsError)
@@ -247,7 +248,9 @@ namespace Nethermind.Hive
                     _logger.Info(
                         $"HIVE suggested {block.ToString(Block.Format.Short)}, now best suggested header {_blockTree.BestSuggestedHeader}, head {_blockTree.Head?.Header?.ToString(BlockHeader.Format.Short)}");
                 
+                _logger.Info("awaiting for block processing in hive runner STARTED");
                 await WaitForBlockProcessing(_resetEvent);
+                _logger.Info("awaiting for block processing in hive runner FINISHED");
             }
             catch (Exception e)
             {
