@@ -136,8 +136,12 @@ namespace Nethermind.Hive
             string[] files = Directory.GetFiles(blocksDir).OrderBy(x => x).ToArray();
             if (_logger.IsInfo) _logger.Info($"Loaded {files.Length} files with blocks to process.");
 
+            int i = 0;
             foreach (string file in files)
             {
+                i++;
+                if (_logger.IsInfo) _logger.Info($"HIVE number of files: {files.Length}");
+                
                 if (cancellationToken.IsCancellationRequested)
                 {
                     break;
@@ -145,11 +149,14 @@ namespace Nethermind.Hive
 
                 try
                 {
+                    if (_logger.IsInfo) _logger.Info($"HIVE before decoding file: {i}");
                     Block block = DecodeBlock(file);
                     if (_logger.IsInfo)
                         _logger.Info(
                             $"HIVE Processing block file: {file} - {block.ToString(Block.Format.Short)}");
+                    if (_logger.IsInfo) _logger.Info($"HIVE before processing file: {i}");
                     await ProcessBlock(block);
+                    if (_logger.IsInfo) _logger.Info($"HIVE after processing file: {i}");
                 }
                 catch (RlpException e)
                 {
