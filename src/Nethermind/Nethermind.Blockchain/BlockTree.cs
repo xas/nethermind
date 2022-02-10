@@ -17,6 +17,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -935,7 +936,7 @@ namespace Nethermind.Blockchain
                     _chainLevelInfoRepository.PersistLevel(currentNumber, currentLevel, batch);
                 }
                 
-                if (_logger.IsInfo) _logger.Info($"Deleting invalid block {currentHash} at level {currentNumber}");
+                if (_logger.IsInfo) _logger.Info($"Deleting invalid block {currentHash} at level {currentNumber}, CanAcceptNewBlocks: {CanAcceptNewBlocks}, stacktrace: {new StackTrace()}");
                 _blockCache.Delete(currentHash);
                 _blockDb.Delete(currentHash);
                 _headerCache.Delete(currentHash);
