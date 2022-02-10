@@ -1563,6 +1563,7 @@ namespace Nethermind.Blockchain
                 _taskCompletionSource = new TaskCompletionSource<bool>();
             }
             Interlocked.Increment(ref _canAcceptNewBlocksCounter);
+            if (_logger.IsInfo) _logger.Info($"Accepting new blocks blocked, Counter: {_canAcceptNewBlocksCounter}, stacktrace: {new StackTrace()}");
         }
 
         internal void ReleaseAcceptingNewBlocks()
@@ -1573,6 +1574,7 @@ namespace Nethermind.Blockchain
                 _taskCompletionSource.SetResult(true);
                 _taskCompletionSource = null;
             }
+            if (_logger.IsInfo) _logger.Info($"Accepting new blocks released, Counter: {_canAcceptNewBlocksCounter}, stacktrace: {new StackTrace()}");
         }
 
         private Task WaitForReadinessToAcceptNewBlock => _taskCompletionSource?.Task ?? Task.CompletedTask;
