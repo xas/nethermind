@@ -591,7 +591,9 @@ namespace Nethermind.Blockchain
         
         public async Task<AddBlockResult> SuggestBlockAsync(Block block, bool shouldProcess = true, bool? setAsMain = null)
         {
+            if (_logger.IsInfo) _logger.Info("HIVE in SuggestBlockAsync before waiting for readiness");
             await WaitForReadinessToAcceptNewBlock;
+            if (_logger.IsInfo) _logger.Info("HIVE in SuggestBlockAsync READY TO SUGGEST");
             return SuggestBlock(block, shouldProcess, setAsMain);
         }
 
@@ -1561,6 +1563,7 @@ namespace Nethermind.Blockchain
             if (CanAcceptNewBlocks)
             {
                 _taskCompletionSource = new TaskCompletionSource<bool>();
+                if (_logger.IsInfo) _logger.Info("TASK COMPLETION SOURCE CREATED");
             }
             Interlocked.Increment(ref _canAcceptNewBlocksCounter);
             if (_logger.IsInfo) _logger.Info($"Accepting new blocks blocked, Counter: {_canAcceptNewBlocksCounter}, stacktrace: {new StackTrace()}");
@@ -1573,6 +1576,7 @@ namespace Nethermind.Blockchain
             {
                 _taskCompletionSource.SetResult(true);
                 _taskCompletionSource = null;
+                if (_logger.IsInfo) _logger.Info("TASK COMPLETION SOURCE FINISHED");
             }
             if (_logger.IsInfo) _logger.Info($"Accepting new blocks released, Counter: {_canAcceptNewBlocksCounter}, stacktrace: {new StackTrace()}");
         }
