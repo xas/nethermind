@@ -69,16 +69,7 @@ namespace Nethermind.Hive
             if (_logger.IsInfo) _logger.Info("HIVE initialization started");
             _blockTree.BlockAddedToMain += BlockTreeOnBlockAddedToMain;
             IHiveConfig hiveConfig = _configurationProvider.GetConfig<IHiveConfig>();
-            
-            _logger.Info($"HIVE RUNNER initial Eip1559TransitionBlock: {HeaderDecoder.Eip1559TransitionBlock}");
 
-            if (long.TryParse(Environment.GetEnvironmentVariable("HIVE_FORK_LONDON"), out long londonTransitionBlock))
-            {
-                HeaderDecoder.Eip1559TransitionBlock = londonTransitionBlock;
-            }
-            
-            _logger.Info($"HIVE RUNNER Eip1559TransitionBlock after change: {HeaderDecoder.Eip1559TransitionBlock}");
-            
             ListEnvironmentVariables();
             await InitializeBlocks(hiveConfig.BlocksDir, cancellationToken);
             await InitializeChain(hiveConfig.ChainFile);
@@ -145,7 +136,7 @@ namespace Nethermind.Hive
             string[] files = Directory.GetFiles(blocksDir).OrderBy(x => x).ToArray();
             if (_logger.IsInfo) _logger.Info($"Loaded {files.Length} files with blocks to process.");
 
-            foreach (var file in files)
+            foreach (string file in files)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -153,18 +144,14 @@ namespace Nethermind.Hive
                 }
 
                 Block? block = DecodeBlock(file);
-                _logger.Info($"HIVE RUNNER Eip1559TransitionBlock just after decoding block: {HeaderDecoder.Eip1559TransitionBlock}");
 
-                if (block is null)
+                if (block is not null)
                 {
-                    continue;
+                    if (_logger.IsInfo)
+                        _logger.Info(
+                            $"HIVE Processing block file: {file} - {block.ToString(Block.Format.Short)}");
+                    await ProcessBlock(block);
                 }
-                
-                if (_logger.IsInfo)
-                    _logger.Info(
-                        $"HIVE Processing block file: {file} - {block.ToString(Block.Format.Short)}");
-                    
-                await ProcessBlock(block);
             }
         }
 
@@ -203,9 +190,7 @@ namespace Nethermind.Hive
         {
             byte[] fileContent = File.ReadAllBytes(file);
             if (_logger.IsInfo) _logger.Info(fileContent.ToHexString());
-            Rlp blockRlp = new Rlp(fileContent);
-
-            _logger.Info($"HIVE RUNNER Eip1559TransitionBlock just before decoding block: {HeaderDecoder.Eip1559TransitionBlock}");
+            Rlp blockRlp = new(fileContent);
 
             Block? decodedBlock = null;
 
@@ -215,7 +200,7 @@ namespace Nethermind.Hive
             }
             catch (RlpException e)
             {
-                _logger.Warn("wrong block rlp");
+                if (_logger.IsError) _logger.Error($"HIVE Wrong block rlp.", e);
             }
 
             return decodedBlock;
