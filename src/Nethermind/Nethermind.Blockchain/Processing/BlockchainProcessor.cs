@@ -373,8 +373,8 @@ namespace Nethermind.Blockchain.Processing
                         if (processingBranch.BlocksToProcess[i].Hash == invalidBlockHash)
                         {
                             _blockTree.DeleteInvalidBlock(processingBranch.BlocksToProcess[i]);
-                            if (_logger.IsDebug)
-                                _logger.Debug($"Skipped processing of {processingBranch.BlocksToProcess[^1].ToString(Block.Format.FullHashAndNumber)} because of {processingBranch.BlocksToProcess[i].ToString(Block.Format.FullHashAndNumber)} is invalid");
+                            if (_logger.IsInfo)
+                                _logger.Info($"Skipped processing of {processingBranch.BlocksToProcess[^1].ToString(Block.Format.FullHashAndNumber)} because of {processingBranch.BlocksToProcess[i].ToString(Block.Format.FullHashAndNumber)} is invalid");
                         }
                     }
                 }

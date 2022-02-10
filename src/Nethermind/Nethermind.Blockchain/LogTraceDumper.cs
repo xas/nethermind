@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Nethermind.Core;
 using Nethermind.Core.Crypto;
@@ -58,7 +59,7 @@ namespace Nethermind.Blockchain
                     IReadOnlyList<TxReceipt> receipts = receiptsTracer.TxReceipts;
                     serializer.Serialize(diagnosticFile, receipts, true);
                     if (logger.IsInfo)
-                        logger.Info($"Created a Receipts trace of block {blockHash} in file {diagnosticFile.Name}");
+                        logger.Info($"Created a Receipts trace of block {blockHash} in file {diagnosticFile.Name} {new StackTrace()}");
 
                 }
                 
