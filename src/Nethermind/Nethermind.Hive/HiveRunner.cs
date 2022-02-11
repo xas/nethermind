@@ -228,7 +228,6 @@ namespace Nethermind.Hive
                 {
                     if (_logger.IsError)
                         _logger.Error($"Cannot add block {block} to the blockTree, add result {result}");
-                    return;
                 }
 
                 try
