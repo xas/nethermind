@@ -15,6 +15,7 @@
 //  along with the Nethermind. If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics;
 using Nethermind.Blockchain.Find;
 using Nethermind.Consensus;
 using Nethermind.Core;
@@ -76,7 +77,12 @@ namespace Nethermind.Blockchain.Validators
                                       || Bytes.AreEqual(header.ExtraData, DaoExtraData));
             if (!extraDataValid)
             {
-                if (_logger.IsWarn) _logger.Warn($"Invalid block header ({header.Hash}) - DAO extra data not valid");
+                if (_logger.IsWarn) _logger.Warn($"Invalid block header ({header.Hash}) - DAO extra data not valid. StackTrace: {new StackTrace()}");
+                if (_daoBlockNumber is not null) _logger.Warn(_daoBlockNumber.ToString());
+                if (_logger.IsWarn) _logger.Warn($"Header number: {header.Number}");
+                if (_logger.IsWarn) _logger.Warn($"Header extra data: {header.ExtraData}");
+                if (_logger.IsWarn) _logger.Warn($"Dao extra data: {DaoExtraData}");
+                if (_logger.IsWarn) _logger.Warn($"are equal: {Bytes.AreEqual(header.ExtraData, DaoExtraData)}");
             }
 
             if (parent == null)
@@ -92,7 +98,7 @@ namespace Nethermind.Blockchain.Validators
                     return isGenesisValid;
                 }
 
-                if (_logger.IsDebug) _logger.Debug($"Orphan block, could not find parent ({header.ParentHash}) of ({header.Hash})");
+                if (_logger.IsInfo) _logger.Info($"Orphan block, could not find parent ({header.ParentHash}) of ({header.Hash})");
                 return false;
             }
 
@@ -101,7 +107,7 @@ namespace Nethermind.Blockchain.Validators
             {
                 if (parent.TotalDifficulty + header.Difficulty != header.TotalDifficulty)
                 {
-                    if (_logger.IsDebug) _logger.Debug($"Invalid total difficulty");
+                    if (_logger.IsInfo) _logger.Info($"Invalid total difficulty");
                     totalDifficultyCorrect = false;
                 }
             }
@@ -134,7 +140,7 @@ namespace Nethermind.Blockchain.Validators
                 if (_logger.IsWarn) _logger.Warn($"Invalid block header ({header.Hash}) - block number is not parent + 1");
             }
 
-            if (_logger.IsTrace) _logger.Trace($"Validating block {header.ToString(BlockHeader.Format.Short)}, extraData {header.ExtraData.ToHexString(true)}");
+            if (_logger.IsInfo) _logger.Info($"Validating block {header.ToString(BlockHeader.Format.Short)}, extraData {header.ExtraData.ToHexString(true)}");
 
             bool isEip1559Correct = true;
             bool isEip1559Enabled = spec.IsEip1559Enabled;
