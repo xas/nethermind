@@ -222,7 +222,7 @@ namespace Nethermind.Blockchain.Processing
         private void RunProcessingLoop()
         {
             _stats.Start();
-            if (_logger.IsDebug) _logger.Debug($"Starting block processor - {_blockQueue.Count} blocks waiting in the queue.");
+            if (_logger.IsInfo) _logger.Info($"Starting block processor - {_blockQueue.Count} blocks waiting in the queue.");
 
             FireProcessingQueueEmpty();
 
@@ -235,20 +235,20 @@ namespace Nethermind.Blockchain.Processing
 
                 Block block = blockRef.Block;
 
-                if (_logger.IsTrace) _logger.Trace($"Processing block {block.ToString(Block.Format.Short)}).");
+                if (_logger.IsInfo) _logger.Info($"Processing block {block.ToString(Block.Format.Short)}).");
 
                 Block processedBlock = Process(block, blockRef.ProcessingOptions, _compositeBlockTracer.GetTracer());
                 if (processedBlock == null)
                 {
-                    if (_logger.IsTrace) _logger.Trace($"Failed / skipped processing {block.ToString(Block.Format.Full)}");
+                    if (_logger.IsInfo) _logger.Info($"Failed / skipped processing {block.ToString(Block.Format.Full)}");
                 }
                 else
                 {
-                    if (_logger.IsTrace) _logger.Trace($"Processed block {block.ToString(Block.Format.Full)}");
+                    if (_logger.IsInfo) _logger.Info($"Processed block {block.ToString(Block.Format.Full)}");
                     _stats.UpdateStats(block, _recoveryQueue.Count, _blockQueue.Count);
                 }
 
-                if (_logger.IsTrace) _logger.Trace($"Now {_blockQueue.Count} blocks waiting in the queue.");
+                if (_logger.IsInfo) _logger.Info($"Now {_blockQueue.Count} blocks waiting in the queue.");
                 FireProcessingQueueEmpty();
             }
 
