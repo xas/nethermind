@@ -75,15 +75,14 @@ namespace Nethermind.Blockchain.Validators
                                       || header.Number < _daoBlockNumber
                                       || header.Number >= _daoBlockNumber + 10
                                       || Bytes.AreEqual(header.ExtraData, DaoExtraData));
-            if (!extraDataValid)
-            {
-                if (_logger.IsWarn) _logger.Warn($"Invalid block header ({header.Hash}) - DAO extra data not valid. StackTrace: {new StackTrace()}");
+            
+                if (_logger.IsWarn) _logger.Warn($"{extraDataValid} Invalid block header ({header.Hash}) - DAO extra data not valid. StackTrace: {new StackTrace()}");
                 if (_daoBlockNumber is not null) _logger.Warn(_daoBlockNumber.ToString());
                 if (_logger.IsWarn) _logger.Warn($"Header number: {header.Number}");
-                if (_logger.IsWarn) _logger.Warn($"Header extra data: {header.ExtraData}");
-                if (_logger.IsWarn) _logger.Warn($"Dao extra data: {DaoExtraData}");
+                if (_logger.IsWarn) _logger.Warn($"Header extra data: {header.ExtraData.ToHexString()}");
+                if (_logger.IsWarn) _logger.Warn($"Dao extra data: {DaoExtraData.ToHexString()}");
                 if (_logger.IsWarn) _logger.Warn($"are equal: {Bytes.AreEqual(header.ExtraData, DaoExtraData)}");
-            }
+            
 
             if (parent == null)
             {
