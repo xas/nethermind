@@ -28,6 +28,7 @@ using Nethermind.Stats;
 using Nethermind.Synchronization;
 using Nethermind.Synchronization.Peers;
 using Nethermind.Sockets;
+using Nethermind.State.Snap;
 
 namespace Nethermind.Api
 {
@@ -55,5 +56,6 @@ namespace Nethermind.Api
         ISyncPeerPool? SyncPeerPool { get; set; }
         ISyncServer? SyncServer { get; set; }
         IWebSocketsManager WebSocketsManager { get; set; }
+        ISnapProvider SnapProvider { get; set; }
     }
 }

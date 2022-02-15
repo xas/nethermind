@@ -64,6 +64,7 @@ using Nethermind.Trie.Pruning;
 using Nethermind.TxPool;
 using Nethermind.Wallet;
 using Nethermind.Sockets;
+using Nethermind.State.Snap;
 
 namespace Nethermind.Api
 {
@@ -202,5 +203,6 @@ namespace Nethermind.Api
         public IReadOnlyList<INethermindPlugin> Plugins { get; } = new List<INethermindPlugin>();
         public IList<IPublisher> Publishers { get; } = new List<IPublisher>(); // this should be called publishers
         public CompositePruningTrigger PruningTrigger { get; } = new();
+        public ISnapProvider SnapProvider { get; set; }
     }
 }
